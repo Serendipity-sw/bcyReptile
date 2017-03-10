@@ -10,7 +10,8 @@
 ## 备注
 
     目前项目已知可以寄存在linux，unix，windows，os x 系统中。后续将增加对安卓系统的支持。
-
+    后续将对
+    项目每次编码完成的一个版本增加打包可运行版本进行发布
 ## 配置文件解读
     {
       "initUrlPath":"http://bcy.net/coser/listhotwork/2142?&p=1",
