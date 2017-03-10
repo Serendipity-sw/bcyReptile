@@ -27,6 +27,9 @@ var (
 	threadNumber     = 0
 	threadRun        = make(chan bool, 1)
 	isRun            int
+	cosPageObjLock   sync.RWMutex
+	cosPageObj       map[string]int = make(map[string]int)
+	threadZanProcess                = make(chan bool, 1)
 )
 
 /**
@@ -70,9 +73,57 @@ func main() {
 		isRun = threadNumber
 		threadNumberLock.RUnlock()
 		if isRun == 0 {
-			//文件输出处理代码 待完善
+			pageZanProcess()
 		}
 		break
+	}
+}
+
+/**
+每个帖子赞的数量获取
+创建人：邵炜
+创建时间：2017年03月10日21:16:21
+*/
+func pageZanProcess() {
+	for _, item := range cosPageUrl {
+		threadNumberLock.Lock()
+		threadNumber++
+		threadNumberLock.Unlock()
+		go coserZanNumberProcess(item)
+	}
+
+}
+
+/**
+coser帖子赞的数量
+创建人：邵炜
+创建时间：2017年03月10日21:24:32
+*/
+func coserZanNumberProcess(urlPathStr string) {
+	defer func() {
+
+	}()
+	httpClient, err := http.Get(urlPathStr)
+	if err != nil {
+		glog.Error("coserZanNumberProcess http get err! urlPathStr: %s err: %s \n", urlPathStr, err.Error())
+		return
+	}
+	defer httpClient.Body.Close()
+	docQuery, err := goquery.NewDocumentFromReader(httpClient.Body)
+	if err != nil {
+		glog.Error("coserZanNumberProcess NewDocumentFromReader run err! urlPath: %s err: %s\n", urlPathStr, err.Error())
+		return
+	}
+	zanNumberStr, bo := docQuery.Find("#js-detailZanTuijian-zan").Attr("data-zan")
+	if bo {
+		zanNumber, err := strconv.Atoi(zanNumberStr)
+		if err != nil {
+			glog.Error("coserZanNumberProcess zanNumberStr can't convert string to int! zanNumberStr: %s err: %s \n", zanNumberStr, err.Error())
+			return
+		}
+		cosPageObjLock.Lock()
+		cosPageObj[urlPathStr] = zanNumber
+		cosPageObjLock.Unlock()
 	}
 }
 
