@@ -10,6 +10,8 @@ import (
 	"io/ioutil"
 	"net/http"
 	"net/url"
+	"os"
+	"sort"
 	"strconv"
 	"strings"
 	"sync"
@@ -30,6 +32,7 @@ var (
 	cosPageObjLock   sync.RWMutex
 	cosPageObj       map[string]int = make(map[string]int)
 	threadZanProcess                = make(chan bool, 1)
+	zanNumberSort    []int
 )
 
 /**
@@ -64,18 +67,31 @@ func main() {
 	}
 	urlHost = urlObj.Host
 
-	threadNumber++
 	getUrlPage(initUrlPath)
 
-	select {
-	case <-threadRun:
-		threadNumberLock.RLock()
-		isRun = threadNumber
-		threadNumberLock.RUnlock()
-		if isRun == 0 {
-			pageZanProcess()
+	pageZanProcess()
+
+	for _, value := range cosPageObj {
+		zanNumberSort = append(zanNumberSort, value)
+	}
+	sort.Ints(zanNumberSort)
+	f, err := os.OpenFile(createFilePath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		glog.Error("fileCreateAndWrite os openFile error! fileName: %s err: %s \n", createFilePath, err.Error())
+		return
+	}
+	defer f.Close()
+
+	for _, value := range zanNumberSort {
+		for key, item := range cosPageObj {
+			if item == value {
+				_, err = f.Write([]byte(fmt.Sprintf("%s %d \n", key, item)))
+				if err != nil {
+					glog.Error("fileCreateAndWrite write error! content: %v fileName: %s err: %s \n", key, createFilePath, err.Error())
+					return
+				}
+			}
 		}
-		break
 	}
 }
 
@@ -86,10 +102,8 @@ func main() {
 */
 func pageZanProcess() {
 	for _, item := range cosPageUrl {
-		threadNumberLock.Lock()
-		threadNumber++
-		threadNumberLock.Unlock()
-		go coserZanNumberProcess(item)
+
+		coserZanNumberProcess(item)
 	}
 
 }
@@ -121,9 +135,7 @@ func coserZanNumberProcess(urlPathStr string) {
 			glog.Error("coserZanNumberProcess zanNumberStr can't convert string to int! zanNumberStr: %s err: %s \n", zanNumberStr, err.Error())
 			return
 		}
-		cosPageObjLock.Lock()
 		cosPageObj[urlPathStr] = zanNumber
-		cosPageObjLock.Unlock()
 	}
 }
 
@@ -144,12 +156,7 @@ func readConfig() {
 输入参数： bodyStr 网页html源码
 */
 func pageProcess(bodyByte *[]byte) {
-	defer func() {
-		threadNumberLock.Lock()
-		threadNumber--
-		threadNumberLock.Unlock()
-		threadRun <- true
-	}()
+
 	var (
 		href      string
 		arrayList []string
@@ -167,12 +174,11 @@ func pageProcess(bodyByte *[]byte) {
 	docQuery.Find(".grid__inner.gallery.gallery--5 ._box.imageCard.pd10>a").Each(func(i int, elem *goquery.Selection) {
 		href, bo = elem.Attr("href")
 		if bo {
-			arrayList = append(arrayList, fmt.Sprintf("%s%s", urlHost, href))
+			arrayList = append(arrayList, fmt.Sprintf("http://%s%s", urlHost, href))
 		}
 	})
-	cosPageUrlLock.Lock()
+
 	cosPageUrl = append(cosPageUrl, arrayList...)
-	cosPageUrlLock.Unlock()
 }
 
 /**
@@ -214,7 +220,7 @@ func getUrlPage(urlPathStr string) {
 		glog.Error("getUrlPage read body err! urlPathStr: %s err: %s \n", urlPathStr, err.Error())
 		return
 	}
-	go pageProcess(&bodyByte)
+	pageProcess(&bodyByte)
 }
 
 /**
@@ -228,10 +234,7 @@ func pageNumberUrlProcess(pageNumber int) {
 		urlPathStr = initUrlPath[:strings.LastIndex(initUrlPath, "&p=")]
 	}
 	for pageNumber > 1 {
-		threadNumberLock.Lock()
-		go getUrlPage(fmt.Sprintf("%s&p=%d", urlPathStr, pageNumber))
-		threadNumber++
-		threadNumberLock.Unlock()
+		getUrlPage(fmt.Sprintf("%s&p=%d", urlPathStr, pageNumber))
 		pageNumber--
 	}
 }
