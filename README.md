@@ -9,13 +9,20 @@
     
 ## 备注
 
+    目前已处理半次元圈子类别的cos帖子。后续将扩展更多选项。例子可参考配置文件中存放的加载项url地址。
+    
+    程序目前移除多线程操作，待后期完善。目前版本为可使用样例。
+
     目前项目已知可以寄存在linux，unix，windows，os x 系统中。后续将增加对安卓系统的支持。
     后续将对
     项目每次编码完成的一个版本增加打包可运行版本进行发布
 ## 配置文件解读
     {
       "initUrlPath":"http://bcy.net/coser/listhotwork/2142?&p=1",
-      "createFilePath":"./bcyReptile"
+      "createFilePath":"./coserPhoto.txt"
     }
     initUrlPath初始化目录地址
     createFilePath生成的url地址文件存放路径
+    
+## 可执行文件
+    程序目前已经上传打包在windows 64位操作系统下的可执行文件 bcyReptile.exe  可执行文件需配合config.json才可以运行。如担心病毒木马，可自行检查源代码，并安装go语言包进行安装打包
