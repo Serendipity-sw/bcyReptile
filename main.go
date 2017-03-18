@@ -14,25 +14,17 @@ import (
 	"sort"
 	"strconv"
 	"strings"
-	"sync"
 )
 
 var (
-	debugFlag        = flag.Bool("d", false, "debug mode")
-	initUrlPath      string //初始化目录地址
-	urlHost          string //抓取网站域名
-	createFilePath   string //文件生成路径
-	isFirstStart     = true //是否为第一次启动
-	cosPageUrlLock   sync.RWMutex
-	cosPageUrl       []string
-	threadNumberLock sync.RWMutex
-	threadNumber     = 0
-	threadRun        = make(chan bool, 1)
-	isRun            int
-	cosPageObjLock   sync.RWMutex
-	cosPageObj       map[string]int = make(map[string]int)
-	threadZanProcess                = make(chan bool, 1)
-	zanNumberSort    []int
+	debugFlag      = flag.Bool("d", false, "debug mode")
+	initUrlPath    string //初始化目录地址
+	urlHost        string //抓取网站域名
+	createFilePath string //文件生成路径
+	isFirstStart   = true //是否为第一次启动
+	cosPageUrl     []string
+	cosPageObj     map[string]int = make(map[string]int)
+	zanNumberSort  []int
 )
 
 /**
