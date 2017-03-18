@@ -14,6 +14,7 @@ import (
 	"sort"
 	"strconv"
 	"strings"
+	"sync"
 )
 
 var (
@@ -61,7 +62,10 @@ func main() {
 
 	getUrlPage(initUrlPath)
 
-	pageZanProcess()
+	var threadZanProcess sync.WaitGroup
+
+	pageZanProcess(&threadZanProcess)
+	threadZanProcess.Wait()
 
 	for _, value := range cosPageObj {
 		zanNumberSort = append(zanNumberSort, value)
@@ -92,10 +96,10 @@ func main() {
 创建人：邵炜
 创建时间：2017年03月10日21:16:21
 */
-func pageZanProcess() {
+func pageZanProcess(threadZanProcess *sync.WaitGroup) {
 	for _, item := range cosPageUrl {
-
-		coserZanNumberProcess(item)
+		threadZanProcess.Add(1)
+		go coserZanNumberProcess(item, threadZanProcess)
 	}
 
 }
@@ -105,9 +109,9 @@ coser帖子赞的数量
 创建人：邵炜
 创建时间：2017年03月10日21:24:32
 */
-func coserZanNumberProcess(urlPathStr string) {
+func coserZanNumberProcess(urlPathStr string, threadZanProcess *sync.WaitGroup) {
 	defer func() {
-
+		threadZanProcess.Done()
 	}()
 	httpClient, err := http.Get(urlPathStr)
 	if err != nil {
