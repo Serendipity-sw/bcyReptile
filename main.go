@@ -151,7 +151,7 @@ func readConfig() {
 创建时间：2017年03月10日11:19:51
 输入参数： bodyStr 网页html源码
 */
-func pageProcess(bodyByte *[]byte) {
+func pageProcess(bodyByte *[]byte, urlPathStr string) {
 
 	var (
 		href      string
@@ -173,7 +173,9 @@ func pageProcess(bodyByte *[]byte) {
 			arrayList = append(arrayList, fmt.Sprintf("http://%s%s", urlHost, href))
 		}
 	})
-
+	if len(arrayList) == 0 {
+		fmt.Println(urlPathStr)
+	}
 	cosPageUrl = append(cosPageUrl, arrayList...)
 }
 
@@ -216,7 +218,7 @@ func getUrlPage(urlPathStr string) {
 		glog.Error("getUrlPage read body err! urlPathStr: %s err: %s \n", urlPathStr, err.Error())
 		return
 	}
-	pageProcess(&bodyByte)
+	pageProcess(&bodyByte, urlPathStr)
 }
 
 /**
