@@ -24,6 +24,7 @@ var (
 	createFilePath string //文件生成路径
 	isFirstStart   = true //是否为第一次启动
 	cosPageUrl     []string
+	cosPageObjLock sync.RWMutex
 	cosPageObj     map[string]int = make(map[string]int)
 	zanNumberSort  []int
 )
@@ -134,7 +135,9 @@ func coserZanNumberProcess(urlPathStr string, threadZanProcess *sync.WaitGroup) 
 			glog.Error("coserZanNumberProcess zanNumberStr can't convert string to int! zanNumberStr: %s err: %s \n", zanNumberStr, err.Error())
 			return
 		}
+		cosPageObjLock.Lock()
 		cosPageObj[urlPathStr] = zanNumber
+		cosPageObjLock.Unlock()
 	}
 }
 
