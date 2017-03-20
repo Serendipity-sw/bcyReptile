@@ -1,4 +1,5 @@
 {
   "initUrlPath":"http://bcy.net/coser/listhotwork/4023?&p=1",
-  "createFilePath":"./coserPhoto.txt"
+  "createFilePath":"./coserPhoto.txt",
+  "createHtmlPath":"./coserPhoto.html"
 }

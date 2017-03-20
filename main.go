@@ -27,6 +27,7 @@ var (
 	cosPageObjLock sync.RWMutex
 	cosPageObj     map[string]int = make(map[string]int)
 	zanNumberSort  []int
+	createHtmlPath string //生成的html文件路径
 )
 
 /**
@@ -85,11 +86,31 @@ func main() {
 				_, err = f.Write([]byte(fmt.Sprintf("%s %d \n", key, item)))
 				if err != nil {
 					glog.Error("fileCreateAndWrite write error! content: %v fileName: %s err: %s \n", key, createFilePath, err.Error())
-					return
+					break
 				}
 			}
 		}
 	}
+
+	htmlFile, err := os.OpenFile(createHtmlPath, os.O_APPEND|os.O_CREATE|os.O_WRONLY, 0644)
+	if err != nil {
+		glog.Error("fileCreateAndWrite os openFile error! fileName: %s err: %s \n", createFilePath, err.Error())
+		return
+	}
+	defer htmlFile.Close()
+	htmlFile.Write([]byte("<!DOCTYPE html> <html lang=\"en\"> <head> <meta charset=\"UTF-8\"> <title>Title</title> </head> <body>"))
+	for _, value := range zanNumberSort {
+		for key, item := range cosPageObj {
+			if item == value {
+				_, err = htmlFile.Write([]byte(fmt.Sprintf("<div><a href=\"%s\">%d</a></div>", key, item)))
+				if err != nil {
+					glog.Error("fileCreateAndWrite write error! content: %v fileName: %s err: %s \n", key, createFilePath, err.Error())
+					break
+				}
+			}
+		}
+	}
+	htmlFile.Write([]byte("</body> </html>"))
 }
 
 /**
@@ -149,6 +170,7 @@ func coserZanNumberProcess(urlPathStr string, threadZanProcess *sync.WaitGroup) 
 func readConfig() {
 	initUrlPath = config.GetStringMust("initUrlPath")
 	createFilePath = config.GetStringMust("createFilePath")
+	createHtmlPath = config.GetStringMust("createHtmlPath")
 }
 
 /**
